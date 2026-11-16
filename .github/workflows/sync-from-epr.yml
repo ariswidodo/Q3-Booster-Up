@@ -30,18 +30,15 @@ jobs:
       - name: Sync data from ariswidodo/EPR
         run: python scripts/sync_from_epr_repo.py --source github
 
-      - name: Encrypt booster_data.json to booster_data.enc
-        run: node scripts/encrypt_data.mjs
+      - name: Build encrypted site (shell.enc + booster_data.enc)
+        run: node scripts/build_encrypted_site.mjs
 
-      - name: Publish minimal encrypted site to gh-pages
+      - name: Publish encrypted site to gh-pages
         run: |
-          mkdir -p _site/data
-          cp index.html styles.css app.js _site/
-          cp data/booster_data.enc _site/data/
           cd _site
           git init -b gh-pages
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add .
-          git commit -m "deploy: encrypted Q3 Booster Up site"
+          git commit -m "deploy: encrypted index.html and data"
           git push --force "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" gh-pages
