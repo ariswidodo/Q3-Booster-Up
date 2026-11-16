@@ -432,129 +432,38 @@
     a.click();
   }
 
-  const EPR_RAW_BASE = "https://raw.githubusercontent.com/ariswidodo/EPR/main/data";
+  const DATA_KEY_HEX = "9f3c8a1e7b24d065a8e1c43f5d902b7e61a4c8d20e3f7b95a1c6d4e802b3f791";
 
-  function parseCsvRows(text) {
-    const clean = text.replace(/^\uFEFF/, "");
-    const lines = [];
-    let row = [], cur = "", inQ = false;
-    for (let i = 0; i < clean.length; i++) {
-      const c = clean[i];
-      if (c === '"') {
-        if (inQ && clean[i + 1] === '"') { cur += '"'; i++; }
-        else inQ = !inQ;
-      } else if (c === "," && !inQ) {
-        row.push(cur); cur = "";
-      } else if ((c === "\n" || c === "\r") && !inQ) {
-        if (c === "\r" && clean[i + 1] === "\n") i++;
-        row.push(cur);
-        if (row.some((x) => x !== "")) lines.push(row);
-        row = []; cur = "";
-      } else {
-        cur += c;
-      }
-    }
-    if (cur !== "" || row.length) { row.push(cur); lines.push(row); }
-    if (!lines.length) return [];
-    const hdr = lines[0].map((h) => h.trim());
-    return lines.slice(1).map((r) => {
-      const o = {};
-      hdr.forEach((h, idx) => { o[h] = (r[idx] || "").trim(); });
-      return o;
-    });
+  function b64ToBytes(b64) {
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return bytes;
   }
 
-  async function loadFromEprRepo() {
-    const ts = Date.now();
-    const [eprRes, pesRes, skuRes] = await Promise.all([
-      fetch(`${EPR_RAW_BASE}/epr_data.json?t=${ts}`, { cache: "no-store" }),
-      fetch(`${EPR_RAW_BASE}/peserta_booster.csv?t=${ts}`, { cache: "no-store" }),
-      fetch(`${EPR_RAW_BASE}/booster_consumables_sku.csv?t=${ts}`, { cache: "no-store" }),
-    ]);
-    if (!eprRes.ok || !pesRes.ok) throw new Error("Gagal mengambil data dari Repo EPR");
-    const eprData = await eprRes.json();
-    const pesertaRows = parseCsvRows(await pesRes.text());
-    const skuRows = skuRes.ok ? parseCsvRows(await skuRes.text()) : [];
+  function hexToBytes(hex) {
+    const bytes = new Uint8Array(hex.length / 2);
+    for (let i = 0; i < bytes.length; i++) bytes[i] = parseInt(hex.substr(i * 2, 2), 16);
+    return bytes;
+  }
 
-    const participants = [];
-    const pMap = new Set();
-    for (const r of pesertaRows) {
-      const code = (r["EPR CODE"] || "").toUpperCase();
-      const pack = r["PACK NAME"] || "";
-      if (!code || !pack) continue;
-      const scheme = pack.toUpperCase().includes("CONSUMABLES") ? "consumables" : "unit_ink";
-      participants.push({
-        code,
-        name: r["EPR NAME"] || "",
-        city: r["CITY"] || "",
-        area: r["AREA"] || "JATENG",
-        fy_cat: r["FY26 TARGET CATEGORY"] || "",
-        pack_name: pack,
-        pkg: pack.split(/\s+/)[0].toUpperCase(),
-        scheme,
-        ae: r["AE"] || "ARIS",
-      });
-      pMap.add(code);
-    }
-
-    const ink = new Set(), oth = new Set();
-    for (const r of skuRows) {
-      const mc = (r["Material Code"] || "").toUpperCase();
-      const tp = (r["Type"] || "").toUpperCase();
-      if (!mc) continue;
-      if (tp === "INK BOTTLE") ink.add(mc);
-      else if (tp === "OTHERS INK BOTTLE") oth.add(mc);
-    }
-    const eprMeta = eprData.meta || {};
-    const rule = { ...((eprMeta.program_rules || {})["Q3 Booster Up"] || {}) };
-    if (ink.size) rule.ink_bottle_skus = [...ink].sort();
-    if (oth.size) rule.other_ink_skus = [...oth].sort();
-    const allInk = new Set([...(rule.ink_bottle_skus || []), ...(rule.other_ink_skus || [])].map((x) => x.toUpperCase()));
-
-    const itemMap = new Map();
-    let txCount = 0;
-    for (const x of eprData.program_items || []) {
-      if (x.prog !== "Q3 Booster Up") continue;
-      const ec = (x.epr || "").toUpperCase();
-      if (!pMap.has(ec)) continue;
-      const kat = (x.kat || "").trim();
-      const model = (x.model || "").toUpperCase();
-      if (kat === "Consumables" && !allInk.has(model)) continue;
-      const pk = `${ec}|${x.date || ""}|${model}`;
-      let cur = itemMap.get(pk);
-      if (!cur) {
-        cur = { epr: ec, date: x.date || "", model, desc: x.desc || "", kat, eim: x.eim || "", qty: 0, net: 0, tx: 0 };
-        itemMap.set(pk, cur);
-      }
-      cur.qty += Math.round(x.qty || 0);
-      cur.net = Math.round((cur.net + (x.net || 0)) * 100) / 100;
-      cur.tx += x.tx || 1;
-      txCount += x.tx || 1;
-    }
-
-    return {
-      meta: {
-        title: "Q3 Booster Up — Monitoring Paket",
-        generated_at: `${eprMeta.generated_at || "-"} (Live Sync: Repo EPR)`,
-        rule,
-        verified_rows: txCount,
-      },
-      participants,
-      items: [...itemMap.values()],
-    };
+  async function loadEncryptedData() {
+    const res = await fetch(`./data/booster_data.enc?t=${Date.now()}`, { cache: "no-store" });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const enc = await res.json();
+    const key = await crypto.subtle.importKey("raw", hexToBytes(DATA_KEY_HEX), "AES-GCM", false, ["decrypt"]);
+    const dec = await crypto.subtle.decrypt({ name: "AES-GCM", iv: b64ToBytes(enc.iv) }, key, b64ToBytes(enc.d));
+    return JSON.parse(new TextDecoder().decode(dec));
   }
 
   async function reloadData() {
     let loaded = null;
-    if (!hasLocalApi) {
-      try {
-        loaded = await loadFromEprRepo();
-      } catch (_) {}
-    }
-    if (!loaded) {
+    if (hasLocalApi) {
       const res = await fetch(`./data/booster_data.json?t=${Date.now()}`, { cache: "no-store" });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       loaded = await res.json();
+    } else {
+      loaded = await loadEncryptedData();
     }
     rawData = loaded;
     const m = rawData.meta || {};

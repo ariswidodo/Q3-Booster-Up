@@ -1,15 +1,17 @@
-name: Sync Q3 Booster Up Data from EPR Repo
+name: Sync & Deploy Encrypted Q3 Booster Up
 
 on:
+  push:
+    branches: [main]
   schedule:
-    - cron: "*/30 * * * *"
+    - cron: "*/15 * * * *"
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  sync:
+  sync-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Q3-Booster-Up
@@ -20,17 +22,26 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
       - name: Sync data from ariswidodo/EPR
         run: python scripts/sync_from_epr_repo.py --source github
 
-      - name: Commit and push if data changed
+      - name: Encrypt booster_data.json to booster_data.enc
+        run: node scripts/encrypt_data.mjs
+
+      - name: Publish minimal encrypted site to gh-pages
         run: |
+          mkdir -p _site/data
+          cp index.html styles.css app.js _site/
+          cp data/booster_data.enc _site/data/
+          cd _site
+          git init -b gh-pages
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/
-          if ! git diff --cached --quiet; then
-            git commit -m "chore: auto-sync Q3 Booster Up data from ariswidodo/EPR"
-            git push
-          else
-            echo "No data changes from ariswidodo/EPR."
-          fi
+          git add .
+          git commit -m "deploy: encrypted Q3 Booster Up site"
+          git push --force "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" gh-pages
