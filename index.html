@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Q3 Booster Up — Monitoring Paket</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=20261116a" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="brand-mark" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>
+          </svg>
+        </div>
+        <div>
+          <div class="title-row">
+            <h1>Q3 Booster Up — Monitoring Paket</h1>
+            <span class="badge badge-blue">1 Okt – 31 Des 2026</span>
+          </div>
+          <p class="subtitle" id="metaSubtitle">Memuat data...</p>
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+        <button class="btn btn-primary" id="btnOpenUpload" hidden>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <span>Upload Data</span>
+        </button>
+        <button class="btn" id="btnShareAllPdf">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>
+          <span>Share PDF</span>
+        </button>
+        <button class="btn" id="btnExportCsv">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span>Export CSV</span>
+        </button>
+        <button class="btn btn-icon" id="btnTheme" title="Ganti tema Terang / Gelap" aria-label="Toggle theme">
+          <svg id="iconSun" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+          <svg id="iconMoon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="pbi-workspace">
+      <aside class="pbi-sidebar" aria-label="Filter Slicer">
+        <div class="pbi-slicer-head">
+          <h3>Filter / Slicer</h3>
+          <button type="button" class="btn" id="btnResetFilters" style="height:24px;padding:0 8px;font-size:11px">Reset</button>
+        </div>
+
+        <div class="pbi-slicer-group">
+          <span class="pbi-slicer-label">AE / AM</span>
+          <select id="aeFilter"><option value="ALL">Semua AE/AM</option></select>
+        </div>
+
+        <div class="pbi-slicer-group">
+          <span class="pbi-slicer-label">Jenis Paket</span>
+          <select id="packFilter">
+            <option value="ALL">Semua Paket</option>
+            <option value="unit_ink">Paket Consumer</option>
+            <option value="consumables">Paket Consumables</option>
+          </select>
+        </div>
+
+        <div class="pbi-slicer-group">
+          <span class="pbi-slicer-label">Status Keikutsertaan</span>
+          <select id="statusFilter">
+            <option value="ALL">Semua EPR</option>
+            <option value="joined">Sudah Beli</option>
+            <option value="missing">Belum Beli</option>
+            <option value="achieved">Achieved Paket</option>
+          </select>
+        </div>
+
+        <div class="pbi-slicer-group">
+          <span class="pbi-slicer-label">Cari EPR</span>
+          <input type="text" id="searchInput" placeholder="Nama / Kode / Kota..." />
+        </div>
+
+        <div class="pbi-slicer-group">
+          <span class="pbi-slicer-label">Periode Mulai</span>
+          <input type="date" id="progStart" />
+        </div>
+
+        <div class="pbi-slicer-group">
+          <span class="pbi-slicer-label">Periode Akhir</span>
+          <input type="date" id="progEnd" />
+        </div>
+
+        <button type="button" class="btn btn-primary" id="btnSavePeriod" hidden style="justify-content:center">Simpan Periode</button>
+      </aside>
+
+      <main class="pbi-canvas">
+        <section class="kpi-grid">
+          <article class="kpi-card">
+            <span class="kpi-label">Partisipasi Peserta</span>
+            <div class="kpi-value mono" id="kpiPeserta">-</div>
+            <div class="kpi-foot" id="kpiPesertaSub">-</div>
+          </article>
+          <article class="kpi-card">
+            <span class="kpi-label">Achieved Paket</span>
+            <div class="kpi-value mono" id="kpiAchieved">-</div>
+            <div class="kpi-foot" id="kpiAchievedSub">-</div>
+          </article>
+          <article class="kpi-card">
+            <span class="kpi-label">Total Booster Consumer</span>
+            <div class="kpi-value mono" id="kpiConsumer">-</div>
+            <div class="kpi-foot" id="kpiConsumerSub">-</div>
+          </article>
+          <article class="kpi-card">
+            <span class="kpi-label">Total Booster Consumables</span>
+            <div class="kpi-value mono" id="kpiConsumables">-</div>
+            <div class="kpi-foot" id="kpiConsumablesSub">-</div>
+          </article>
+        </section>
+
+        <section class="card">
+          <div class="card-head">
+            <div>
+              <h2>Skema Target &amp; Hadiah Q3 Booster Up</h2>
+              <p class="card-sub">Sumber: 4 EPP Lokal (PT Computek, Raka Perkasa, Computa, Top Distribusi) · 31 SKU tinta resmi</p>
+            </div>
+          </div>
+          <div id="schemeInfo"></div>
+        </section>
+
+        <section class="card">
+          <div class="card-head">
+            <div>
+              <h2>Result Pembelian Peserta</h2>
+              <p class="card-sub">Klik Nama EPR untuk melihat detail sudah beli berapa, kurang berapa, dan rincian SKU</p>
+            </div>
+            <span class="badge badge-neutral" id="tableCount">0 EPR</span>
+          </div>
+          <div id="summaryChips" class="chips-row"></div>
+          <div class="table-scroll" style="max-height:620px;overflow:auto">
+            <table class="main-table">
+              <thead>
+                <tr>
+                  <th style="width:36px">#</th>
+                  <th>Nama EPR</th>
+                  <th>Paket</th>
+                  <th>Result Pembelian (Ringkasan)</th>
+                  <th class="num">Total Qty</th>
+                  <th class="num">Target Paket (Qty)</th>
+                  <th class="num">Kekurangan / Status</th>
+                </tr>
+              </thead>
+              <tbody id="resultBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <footer class="footer">
+      <span>Q3 Booster Up (1 Okt – 31 Des 2026) · Terpisah dari perhitungan Per Q / Per H / FY26</span>
+      <span id="footerInfo"></span>
+    </footer>
+  </div>
+
+  <!-- Pop-up Detail EPR -->
+  <div class="modal-backdrop" id="detailBackdrop" hidden></div>
+  <div class="modal" id="detailModal" hidden role="dialog" aria-modal="true">
+    <div class="modal-head">
+      <div>
+        <div style="display:flex;gap:6px;margin-bottom:4px">
+          <span class="badge badge-neutral mono" id="pmCode">-</span>
+          <span class="badge badge-blue" id="pmPack">-</span>
+        </div>
+        <h2 id="pmName">-</h2>
+        <p class="card-sub" id="pmMeta">-</p>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn" id="btnPmPdf" style="height:32px;padding:0 10px;font-size:12px">Share PDF</button>
+        <button class="btn btn-icon" id="btnCloseDetail" aria-label="Tutup">&times;</button>
+      </div>
+    </div>
+    <div class="modal-body" id="pmBody"></div>
+  </div>
+
+  <!-- Upload & Update Master Modal (Server Lokal) -->
+  <div class="modal-backdrop" id="uploadBackdrop" hidden></div>
+  <div class="modal" id="uploadModal" hidden role="dialog" aria-modal="true">
+    <div class="modal-head">
+      <div>
+        <h2>Upload &amp; Update Data Q3 Booster Up</h2>
+        <p class="card-sub">Berjalan mandiri di server lokal tanpa AI.</p>
+      </div>
+      <button class="btn btn-icon" id="btnCloseUpload" aria-label="Tutup">&times;</button>
+    </div>
+    <div class="modal-tabs">
+      <button class="tab-btn active" data-tab="sellout">Upload Sell Out (.xlsx)</button>
+      <button class="tab-btn" data-tab="master">Update Master (.xlsx)</button>
+    </div>
+    <div class="modal-body" id="tabSellout">
+      <label class="dropzone">
+        <input type="file" id="selloutInput" accept=".xlsx,.xlsm" hidden />
+        <span id="selloutName">Klik untuk pilih file Sell Out (V1 / V2 / V3)</span>
+      </label>
+      <pre class="log-box" id="selloutLog" hidden></pre>
+      <div class="upload-status" id="selloutStatus" hidden></div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="btnSelloutUpload" disabled>Proses &amp; Update</button>
+      </div>
+    </div>
+    <div class="modal-body" id="tabMaster" hidden>
+      <select id="masterKind">
+        <option value="participants">Update Peserta Paket Booster / AE-AM (.xlsx)</option>
+        <option value="skus">Update SKU Tinta Paket Booster (.xlsx)</option>
+      </select>
+      <label class="dropzone">
+        <input type="file" id="masterInput" accept=".xlsx" hidden />
+        <span id="masterName">Klik untuk pilih file Excel master (.xlsx)</span>
+      </label>
+      <div class="upload-status" id="masterStatus" hidden></div>
+      <div class="modal-actions" style="justify-content:space-between">
+        <button class="btn" id="btnMasterRefresh">Refresh Data</button>
+        <button class="btn btn-primary" id="btnMasterUpload" disabled>Update Master</button>
+      </div>
+    </div>
+  </div>
+
+  <section id="pdfReport" class="pdf-report" aria-hidden="true"></section>
+  <script src="app.js?v=20261116a"></script>
+</body>
+</html>
