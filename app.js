@@ -406,7 +406,7 @@
           <tbody>${rowsHtml}</tbody>
         </table>
       </div>
-      <div class="pdf-foot"><span>Q3 Booster Up · 31 SKU Tinta Resmi</span><span>${printRows.length} EPR</span></div>`;
+      <div class="pdf-foot"><span>Q3 Booster Up · 31 SKU Tinta Resmi</span><span class="pdf-credit">Created by Aris Widodo</span><span>${printRows.length} EPR</span></div>`;
 
     const prev = document.title;
     document.title = single
