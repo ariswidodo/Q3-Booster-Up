@@ -331,7 +331,7 @@
 
     $("pmBody").innerHTML = `
       <div class="pm-kpis">
-        <div class="pm-kpi"><span>Sudah Beli</span><strong class="mono">${r.qty.toLocaleString("id-ID")} ${unitLbl}</strong><small>4 EPP Lokal · 31 SKU tinta</small></div>
+        <div class="pm-kpi"><span>Sudah Beli</span><strong class="mono">${r.qty.toLocaleString("id-ID")} ${unitLbl}</strong><small>Disti PIN - 4 EPP Local</small></div>
         <div class="pm-kpi"><span>Target Paket</span><strong class="mono">${r.ev.totalTarget.toLocaleString("id-ID")} ${unitLbl}</strong><small>Hadiah: Rp ${r.ev.reward.toLocaleString("id-ID")}</small></div>
         <div class="pm-kpi"><span>Status / Kekurangan</span><strong class="mono">${r.ev.achieved ? "Achieved!" : `Kurang ${r.ev.totalGap.toLocaleString("id-ID")}`}</strong><small>${r.ev.achieved ? "Siap klaim hadiah" : "Perlu tambahan pembelian"}</small></div>
       </div>
@@ -397,7 +397,7 @@
 
     $("pdfReport").innerHTML = `
       <div class="pdf-head">
-        <div><h1>${esc(title)}</h1><div class="pdf-meta">Periode: ${esc(periodTxt)}${esc(aeMetaTxt)} · EPP Lokal: PT Computek, Raka Perkasa, Computa, Top Distribusi</div></div>
+        <div><h1>${esc(title)}</h1><div class="pdf-meta">Periode: ${esc(periodTxt)}${esc(aeMetaTxt)} · Dihitung hanya Pembelian dari: Disti PIN - 4 EPP Local (Computek, Top Distribusi, Raka Perkasa &amp; Computa)</div></div>
         <div class="pdf-meta" style="text-align:right"><div><b>Q3 Booster Up${aeLabel ? " · " + esc(aeLabel) : ""}</b></div><div>Dicetak: ${new Date().toLocaleString("id-ID")}</div></div>
       </div>
       <div class="pdf-sec">
