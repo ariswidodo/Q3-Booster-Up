@@ -18,9 +18,32 @@ os.makedirs(INBOX_DIR, exist_ok=True)
 sys.path.insert(0, SCRIPTS_DIR)
 
 import booster_engine as BE
+import sync_from_epr_repo as SYNC
 
 LOCK = threading.Lock()
 JOB = {"running": False, "done": False, "error": "", "logs": [], "stats": None}
+SYNC_LOCK = threading.Lock()
+
+
+def _auto_sync_from_epr_if_newer():
+    epr_data_dir = os.path.join(SYNC.DEFAULT_LOCAL_EPR, "data")
+    if not os.path.isdir(epr_data_dir):
+        return
+    dst_json = os.path.join(ROOT, "data", "booster_data.json")
+    dst_mtime = os.path.getmtime(dst_json) if os.path.isfile(dst_json) else 0
+    watch_files = ["epr.db", "peserta_booster.csv", "booster_consumables_sku.csv", "program_rules.json"]
+    latest_src = max(
+        (os.path.getmtime(os.path.join(epr_data_dir, f)) for f in watch_files if os.path.isfile(os.path.join(epr_data_dir, f))),
+        default=0,
+    )
+    if latest_src > dst_mtime:
+        with SYNC_LOCK:
+            dst_mtime2 = os.path.getmtime(dst_json) if os.path.isfile(dst_json) else 0
+            if latest_src > dst_mtime2:
+                try:
+                    SYNC.sync_from_local(SYNC.DEFAULT_LOCAL_EPR)
+                except Exception:
+                    pass
 
 
 def _emit(msg):
@@ -61,6 +84,8 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send_json(dict(JOB))
 
         rel = "index.html" if path in ("/", "") else path.lstrip("/")
+        if rel == "data/booster_data.json":
+            _auto_sync_from_epr_if_newer()
         safe = os.path.normpath(os.path.join(ROOT, urllib.parse.unquote(rel)))
         if not safe.startswith(ROOT) or not os.path.isfile(safe):
             self.send_error(404)

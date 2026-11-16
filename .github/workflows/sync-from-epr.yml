@@ -1,0 +1,36 @@
+name: Sync Q3 Booster Up Data from EPR Repo
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Q3-Booster-Up
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Sync data from ariswidodo/EPR
+        run: python scripts/sync_from_epr_repo.py --source github
+
+      - name: Commit and push if data changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: auto-sync Q3 Booster Up data from ariswidodo/EPR"
+            git push
+          else
+            echo "No data changes from ariswidodo/EPR."
+          fi
