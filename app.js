@@ -360,8 +360,15 @@
     const printRows = singleCode ? lastRows.filter((r) => r.p.code === singleCode) : lastRows;
     if (!printRows.length) return;
     const single = singleCode ? printRows[0] : null;
-    const title = single ? `Result Q3 Booster Up — ${single.p.name}` : "Result Q3 Booster Up — Semua Peserta";
+    const aeSel = $("aeFilter")?.value || "ALL";
+    const aeLabel = single ? single.p.ae : aeSel !== "ALL" ? aeSel : null;
+    const title = single
+      ? `Result Q3 Booster Up — ${single.p.name}`
+      : aeLabel
+      ? `Result Q3 Booster Up — AE/AM: ${aeLabel}`
+      : "Result Q3 Booster Up — Semua Peserta";
     const periodTxt = `${lastMeta.dStart} s/d ${lastMeta.dEnd}`;
+    const aeMetaTxt = aeLabel ? ` · AE/AM: ${aeLabel}` : "";
 
     const rowsHtml = printRows
       .map((r, i) => {
@@ -390,8 +397,8 @@
 
     $("pdfReport").innerHTML = `
       <div class="pdf-head">
-        <div><h1>${esc(title)}</h1><div class="pdf-meta">Periode: ${esc(periodTxt)} · EPP Lokal: PT Computek, Raka Perkasa, Computa, Top Distribusi</div></div>
-        <div class="pdf-meta" style="text-align:right"><div><b>Q3 Booster Up</b></div><div>Dicetak: ${new Date().toLocaleString("id-ID")}</div></div>
+        <div><h1>${esc(title)}</h1><div class="pdf-meta">Periode: ${esc(periodTxt)}${esc(aeMetaTxt)} · EPP Lokal: PT Computek, Raka Perkasa, Computa, Top Distribusi</div></div>
+        <div class="pdf-meta" style="text-align:right"><div><b>Q3 Booster Up${aeLabel ? " · " + esc(aeLabel) : ""}</b></div><div>Dicetak: ${new Date().toLocaleString("id-ID")}</div></div>
       </div>
       <div class="pdf-sec">
         <table class="pdf-table">
@@ -402,7 +409,11 @@
       <div class="pdf-foot"><span>Q3 Booster Up · 31 SKU Tinta Resmi</span><span>${printRows.length} EPR</span></div>`;
 
     const prev = document.title;
-    document.title = single ? `Q3_Booster_${single.p.code}` : "Q3_Booster_Up_Result";
+    document.title = single
+      ? `Q3_Booster_${single.p.code}`
+      : aeLabel
+      ? `Q3_Booster_Up_${aeLabel}`
+      : "Q3_Booster_Up_Result";
     window.print();
     setTimeout(() => (document.title = prev), 500);
   }
@@ -561,7 +572,6 @@
       const r = await fetch("/api/status", { cache: "no-store" });
       if (r.ok) {
         hasLocalApi = true;
-        $("btnOpenUpload").hidden = false;
         $("btnSavePeriod").hidden = false;
       }
     } catch (_) {}
@@ -608,100 +618,6 @@
       });
       await reloadData();
     });
-
-    // Upload modal
-    $("btnOpenUpload").addEventListener("click", () => {
-      $("uploadBackdrop").hidden = false;
-      $("uploadModal").hidden = false;
-    });
-    const closeUp = () => {
-      $("uploadBackdrop").hidden = true;
-      $("uploadModal").hidden = true;
-    };
-    $("btnCloseUpload").addEventListener("click", closeUp);
-    $("uploadBackdrop").addEventListener("click", closeUp);
-    document.querySelectorAll(".tab-btn").forEach((b) => {
-      b.addEventListener("click", () => {
-        document.querySelectorAll(".tab-btn").forEach((x) => x.classList.remove("active"));
-        b.classList.add("active");
-        $("tabSellout").hidden = b.dataset.tab !== "sellout";
-        $("tabMaster").hidden = b.dataset.tab !== "master";
-      });
-    });
-
-    let sellFile = null;
-    $("selloutInput").addEventListener("change", (e) => {
-      sellFile = e.target.files?.[0] || null;
-      $("selloutName").textContent = sellFile ? sellFile.name : "Klik untuk pilih file Sell Out (V1 / V2 / V3)";
-      $("btnSelloutUpload").disabled = !sellFile;
-    });
-    $("btnSelloutUpload").addEventListener("click", async () => {
-      if (!sellFile) return;
-      const st = $("selloutStatus");
-      const lg = $("selloutLog");
-      st.hidden = true;
-      lg.hidden = false;
-      lg.textContent = "Mengunggah file...";
-      $("btnSelloutUpload").disabled = true;
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        headers: { "X-Filename": encodeURIComponent(sellFile.name) },
-        body: sellFile,
-      });
-      if (!res.ok) {
-        st.hidden = false;
-        st.className = "upload-status err";
-        st.textContent = "Gagal upload.";
-        $("btnSelloutUpload").disabled = false;
-        return;
-      }
-      while (true) {
-        await new Promise((r) => setTimeout(r, 500));
-        const s = await (await fetch("/api/status", { cache: "no-store" })).json();
-        lg.textContent = (s.logs || []).join("\n");
-        if (!s.running && s.done) {
-          st.hidden = false;
-          if (s.error) {
-            st.className = "upload-status err";
-            st.textContent = "Gagal: " + s.error;
-          } else {
-            st.className = "upload-status ok";
-            st.textContent = `Selesai: +${s.stats?.inserted ?? 0} transaksi baru (${s.stats?.doubles ?? 0} double dilewati).`;
-            await reloadData();
-          }
-          $("btnSelloutUpload").disabled = false;
-          break;
-        }
-      }
-    });
-
-    let mastFile = null;
-    $("masterInput").addEventListener("change", (e) => {
-      mastFile = e.target.files?.[0] || null;
-      $("masterName").textContent = mastFile ? mastFile.name : "Klik untuk pilih file Excel master (.xlsx)";
-      $("btnMasterUpload").disabled = !mastFile;
-    });
-    async function runMaster(kind, file) {
-      const st = $("masterStatus");
-      st.hidden = false;
-      st.className = "upload-status";
-      st.textContent = "Memproses...";
-      try {
-        const headers = { "X-Master-Kind": kind };
-        if (file) headers["X-Filename"] = encodeURIComponent(file.name);
-        const r = await fetch("/api/update-master", { method: "POST", headers, body: file || null });
-        const d = await r.json();
-        if (!r.ok || !d.ok) throw new Error(d.error || "Gagal");
-        st.className = "upload-status ok";
-        st.textContent = d.message || "Berhasil.";
-        await reloadData();
-      } catch (err) {
-        st.className = "upload-status err";
-        st.textContent = "Gagal: " + err.message;
-      }
-    }
-    $("btnMasterUpload").addEventListener("click", () => mastFile && runMaster($("masterKind").value, mastFile));
-    $("btnMasterRefresh").addEventListener("click", () => runMaster("refresh", null));
   }
 
   (async () => {

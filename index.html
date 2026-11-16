@@ -29,10 +29,6 @@
       </div>
 
       <div class="topbar-actions">
-        <button class="btn btn-primary" id="btnOpenUpload" hidden>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          <span>Upload Data</span>
-        </button>
         <button class="btn" id="btnShareAllPdf">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>
           <span>Share PDF</span>
@@ -186,49 +182,7 @@
     <div class="modal-body" id="pmBody"></div>
   </div>
 
-  <!-- Upload & Update Master Modal (Server Lokal) -->
-  <div class="modal-backdrop" id="uploadBackdrop" hidden></div>
-  <div class="modal" id="uploadModal" hidden role="dialog" aria-modal="true">
-    <div class="modal-head">
-      <div>
-        <h2>Upload &amp; Update Data Q3 Booster Up</h2>
-        <p class="card-sub">Berjalan mandiri di server lokal tanpa AI.</p>
-      </div>
-      <button class="btn btn-icon" id="btnCloseUpload" aria-label="Tutup">&times;</button>
-    </div>
-    <div class="modal-tabs">
-      <button class="tab-btn active" data-tab="sellout">Upload Sell Out (.xlsx)</button>
-      <button class="tab-btn" data-tab="master">Update Master (.xlsx)</button>
-    </div>
-    <div class="modal-body" id="tabSellout">
-      <label class="dropzone">
-        <input type="file" id="selloutInput" accept=".xlsx,.xlsm" hidden />
-        <span id="selloutName">Klik untuk pilih file Sell Out (V1 / V2 / V3)</span>
-      </label>
-      <pre class="log-box" id="selloutLog" hidden></pre>
-      <div class="upload-status" id="selloutStatus" hidden></div>
-      <div class="modal-actions">
-        <button class="btn btn-primary" id="btnSelloutUpload" disabled>Proses &amp; Update</button>
-      </div>
-    </div>
-    <div class="modal-body" id="tabMaster" hidden>
-      <select id="masterKind">
-        <option value="participants">Update Peserta Paket Booster / AE-AM (.xlsx)</option>
-        <option value="skus">Update SKU Tinta Paket Booster (.xlsx)</option>
-      </select>
-      <label class="dropzone">
-        <input type="file" id="masterInput" accept=".xlsx" hidden />
-        <span id="masterName">Klik untuk pilih file Excel master (.xlsx)</span>
-      </label>
-      <div class="upload-status" id="masterStatus" hidden></div>
-      <div class="modal-actions" style="justify-content:space-between">
-        <button class="btn" id="btnMasterRefresh">Refresh Data</button>
-        <button class="btn btn-primary" id="btnMasterUpload" disabled>Update Master</button>
-      </div>
-    </div>
-  </div>
-
   <section id="pdfReport" class="pdf-report" aria-hidden="true"></section>
-  <script src="app.js?v=20261116a"></script>
+  <script src="app.js?v=20261116b"></script>
 </body>
 </html>
